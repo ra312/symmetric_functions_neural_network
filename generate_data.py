@@ -1,16 +1,10 @@
-from sympy.polys.polyutils import _analyze_gens
-from sympy.core import Add, Mul, Symbol, sympify, Dummy, symbols
-from sympy.core.singleton import S
-from sympy.utilities import subsets
 from sympy import symbols
-from itertools import combinations
 from sympy.polys.specialpolys import symmetric_poly
 import random
-import sys
 import csv
 import pandas as pd
-import numpy as np
-def generate_csv(filename, gens, polynoms, values):
+
+def generate_csv(filename, gens, polynoms, values, a,b):
 
 	# lines 18-34 below get values ready to write to csv file
 	# getting highest degree of polynomials in polynoms
@@ -23,18 +17,29 @@ def generate_csv(filename, gens, polynoms, values):
 		# print(values[0].keys())
 	writer  = csv.DictWriter(csvfile, fieldnames=fieldnames)
 	writer.writeheader()
-	for i in range(34):
+	for i in range(a,b):
+		# print("i={}".format(i))
 		writer.writerow(values[i])
 
 	csvfile.close()
 
 
 	return fieldnames
-def load_csv(filename,CSV_COLUMNS):
-	train = pd.read_csv("./train.csv")
-	print(train)
+
+def load_csv(filename):
+	data = pd.read_csv(filename)
+	# print(train)
+	# print(train.pop('p'))
+	# print("CSV_COLUMNS={}".format(CSV_COLUMNS))
+
+	data_features, data_label = data, data.pop('p')
+	print("train features")
+	print(data_features)
+	print("train label")
+	print(data_label)
    # train = pd.read_csv(train_path, names=CSV_COLUMN_NAMES, header=0)
-	return
+	return data_features, data_label
+
 
 # generating n symbols
 
@@ -44,7 +49,7 @@ def generate_polynoms(d, n):
 
 	gens=[]
 	for i in range(1,d+1):
-		print("i={}".format(i))
+		# print("i={}".format(i))
 		x_i=symbols("x"+str(i))
 		gens.append(x_i)
 	# print("gens = {}".format(gens))
@@ -59,9 +64,8 @@ def generate_polynoms(d, n):
 	return polynoms, gens
 
 def generate_values(polynoms,gens, n):
-
-
 # setting random values to arguments in gens
+# evaluating polynomial values
 # number of different argument values
 	d = len(gens)
 	values={}
@@ -73,17 +77,51 @@ def generate_values(polynoms,gens, n):
 		k = random.randint(0,d-1)
 		xd1=symbols("x"+str(d+1))
 		xd2=symbols('p')
-		value[xd1]=int(polynoms[k].evalf(subs=values[i]))
+		poly_k_eval = int(polynoms[k].evalf(subs=value))
+		value[xd1]= poly_k_eval
 		value[xd2]=k
 		values[i]=value
 
 	return values
-	# x1= ., x2=., ...
 
+# we transform data to feed into model
+def parse_csv(line):
+	example_defaults = [[0], [0], [0], [0], [0]]  # sets field types
+	column_names = ['x1','x2','x4','x5','p']
+	feature_names = column_names[:-1]
+	label_name = column_names[-1]
+	print("feature_names={}".format(feature_names))
+	print("label_names={}".format(feature_names))
+
+	print("Features: {}".format(feature_names))
+	print("Label: {}".format(label_name))
+	  # parsed_line = tf.decode_csv(line, example_defaults)
+  # First 4 fields are features, combine into single tensor
+	  # features = tf.reshape(parsed_line[:-1], shape=(4,))
+  # Last field is the label
+  # label = tf.reshape(parsed_line[-1], shape=())
+	# return features, label
 
 if __name__=="__main__":
+# 0) Generate and save data: lines 103-105
+# 1) Import and parse the data sets: lines 106-108
+# 2)Create feature columns to describe the data.
+# 3)Select the type of model
+# 4)Train the model.
+# 5)Evaluate the model's effectiveness.
+# 6)Let the trained model make predictions.
+
 	polynoms,gens = generate_polynoms(4,2)
-	values   = generate_polynom_values(polynoms,34)
-	CSV_COLUMNS = generate_csv("train.csv",gens, polynoms,values)
-	load_csv("train.csv", CSV_COLUMNS)
+	values   = generate_values(polynoms,gens, 34)
+	# 0..34 = 0..24 and 25..24
+	generate_csv("train.csv",gens, polynoms,values, 0,24)
+	generate_csv("test.csv",gens, polynoms,values,25,34)
+	train_features, train_label = load_csv("./train.csv")
+	test_features, test_label = load_csv("./test.csv")
+	my_feature_columns = []
+	for key in train_features.keys():
+		print("train_key={}".format(key))
+	for key in test_features.keys():
+		print("test_key={}".format(key))
+
 #
