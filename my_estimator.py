@@ -66,9 +66,9 @@ def main(argv):
 		  steps=args.train_steps)
 
 	# Evaluate the model.
-	# eval_result = classifier.evaluate(
-	# 	input_fn=lambda:iris_data.eval_input_fn(test_x, test_y,
-	# 											args.batch_size))
+	eval_result = classifier.evaluate(
+		 input_fn=lambda:generate_data.eval_input_fn(test_features, test_label,
+												 args.batch_size))
 
 	# print('\nTest set accuracy: {accuracy:0.3f}\n'.format(**eval_result))
 	#
