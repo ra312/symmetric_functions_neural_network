@@ -75,10 +75,10 @@ def train_input_fn(features, labels, batch_size):
 	"""An input function for training"""
 	# Convert the inputs to a Dataset.
 	dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels))
-	print("features={}".format(features))
-	print("dict(features)={}".format(dict(features)))
-	print("labels={}".format(labels))
-	# Shuffle, repeat, and batch the examples.
+	# print("features={}".format(features))
+	# print("dict(features)={}".format(dict(features)))
+	# print("labels={}".format(labels))
+	# # Shuffle, repeat, and batch the examples.
 	dataset = dataset.shuffle(1000).repeat().batch(batch_size)
 
 	# Return the dataset.
