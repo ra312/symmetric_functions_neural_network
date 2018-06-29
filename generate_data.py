@@ -6,6 +6,7 @@ import csv
 import pandas as pd
 import tensorflow as tf
 
+SPECIES = ['0', '1', '2', '3']
 
 def generate_csv(filename, gens, polynoms, values, a,b):
 
