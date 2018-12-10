@@ -6,16 +6,16 @@ import random
 import numpy.random as np_random
 from sympy import symbols
 # we transform data to feed into model
-def parse_csv(line):
-	example_defaults = [[0], [0], [0], [0], [0]]  # sets field types
-	column_names = ['x1','x2','x4','x5','p']
-	feature_names = column_names[:-1]
-	label_name = column_names[-1]
-	# print("feature_names={}".format(feature_names))
-	# print("label_names={}".format(feature_names))
-
-	print("Features: {}".format(feature_names))
-	print("Label: {}".format(label_name))
+# def parse_csv(line):
+# 	example_defaults = [[0], [0], [0], [0], [0]]  # sets field types
+# 	column_names = ['x1','x2','x4','x5','p']
+# 	feature_names = column_names[:-1]
+# 	label_name = column_names[-1]
+# 	# print("feature_names={}".format(feature_names))
+# 	# print("label_names={}".format(feature_names))
+#
+# 	print("Features: {}".format(feature_names))
+# 	print("Label: {}".format(label_name))
 	  # parsed_line = tf.decode_csv(line, example_defaults)
   # First 4 fields are features, combine into single tensor
 	  # features = tf.reshape(parsed_line[:-1], shape=(4,))
@@ -33,34 +33,42 @@ def parse_csv(line):
 # 6)Let the trained model make predictions.
 
 def main(argv):
+	# specifying the arguments
 	parser = argparse.ArgumentParser()
 	parser.add_argument('--batch_size', default=100, type=int, help='batch size')
-	parser.add_argument('--train_steps', default=1000, type=int,
+	parser.add_argument('--train_steps', default=10000, type=int,
 					help='number of training steps')
 	args = parser.parse_args(argv[1:])
-	# print("args={}".format(args))
-	# Fetch the data
-	polynoms,gens = generate_data.generate_polynoms(4,2)
-	values   = generate_data.generate_values(polynoms,gens, 34)
-	# 0..34 = 0..24 and 25..24
-	generate_data.generate_csv("train.csv",gens, polynoms,values, 0,24)
-	generate_data.generate_csv("test.csv",gens, polynoms,values,25,34)
+
+
+	# generating polynomials
+	polynoms,gens = generate_data.generate_polynoms(d=4,n=2)
+
+	# evaluating polynomials
+	values   = generate_data.generate_values(polynoms,gens, 100000)
+
+	# saving the values of the polynomials
+	generate_data.generate_csv("train.csv",gens, polynoms,values, 0,80000)
+	generate_data.generate_csv("test.csv",gens, polynoms,values,80001,100000)
+
+	# Fetch the data from the csv files
 	train_features, train_label = generate_data.load_csv("./train.csv")
 	test_features, test_label = generate_data.load_csv("./test.csv")
+
 	# Feature columns describe how to use the input.
 	my_feature_columns = []
 	for key in train_features.keys():
-		# print("key={}".format(key))
 		my_feature_columns.append(tf.feature_column.numeric_column(key=key))
-		# print("train_key={}".format(key))
+
+	# preparing the data for the model
 	dataset = generate_data.train_input_fn(train_features,train_label,args.batch_size)
-	# print("dataset={}".format(dataset))
-# Build 2 hidden layer DNN with 10, 10 units respectively.
+
+	# Build 2 hidden layer DNN with 10, 10 units respectively.
 	classifier = tf.estimator.DNNClassifier(
 		feature_columns=my_feature_columns,
 		# Two hidden layers of 10 nodes each.
 		hidden_units=[10, 10],
-		# The model must choose between 3 classes.
+		# The model must choose between 4 classes.
 		n_classes=4)
 
 	# Train the Model.
@@ -115,29 +123,8 @@ def main(argv):
 				int(polynoms[3].evalf(subs=p3))
 			 )
 	predict_x['x5']=p4
-	# print(predict_x)
-	# print(p0)
-	# print(p1)
-	# print(p2)
-	# print(p3)
-	# print(p4)
 
 
-
-
-	# 		predict_x[x5]=int(polynoms[k].evalf(subs=predict_x[x]))
-
-	# d = len(gens)
-	# xd1=symbols("x"+str(d+1))
-	# xd2=symbols('p')
-	# for k in range(d):
-	# 	predict_poly_k_eval = int(polynoms[k].evalf(subs=predict_value))
-	# 	predict_value[xd1]= predict_poly_k_eval
-	#
-	# expected = [0, 1, 2, 3]
-
-
-	#
 	predictions = classifier.predict(
 		  input_fn=lambda:generate_data.eval_input_fn(predict_x,
 												  labels=None,
